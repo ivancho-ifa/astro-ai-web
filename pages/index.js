@@ -1,20 +1,22 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./index.module.css";
 
 export default function Home() {
-  const [animalInput, setAnimalInput] = useState("");
+  const [birthInfo, setBirthInfo] = useState({birthDate: "", birthTime: "", birthPlace: ""});
   const [result, setResult] = useState();
 
   async function onSubmit(event) {
     event.preventDefault();
     try {
+      console.debug(`birthInfo is ${JSON.stringify(birthInfo)}`)
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ animal: animalInput }),
+        body: JSON.stringify({ birthInfo: birthInfo }),
       });
 
       const data = await response.json();
@@ -23,7 +25,7 @@ export default function Home() {
       }
 
       setResult(data.result);
-      setAnimalInput("");
+      console.info(`Birth chart is ${data.result}`)
     } catch(error) {
       // Consider implementing your own error handling logic here
       console.error(error);
@@ -31,27 +33,52 @@ export default function Home() {
     }
   }
 
+  function onChange(event) {
+    const { name, value } = event.target;
+    setBirthInfo(prevState => ({ ...prevState, [name]: value }));
+  }
+
   return (
     <div>
       <Head>
-        <title>OpenAI Quickstart</title>
-        <link rel="icon" href="/dog.png" />
+        <title>Astro AI</title>
+        <link rel="icon" href="/form-logo.png" />
       </Head>
 
       <main className={styles.main}>
-        <img src="/dog.png" className={styles.icon} />
-        <h3>Name my pet</h3>
+        <img src="/form-logo.png" className={styles.icon} />
         <form onSubmit={onSubmit}>
+          <label htmlFor="birthPlace">Enter birth place</label>
           <input
             type="text"
-            name="animal"
-            placeholder="Enter an animal"
-            value={animalInput}
-            onChange={(e) => setAnimalInput(e.target.value)}
+            name="birthPlace"
+            placeholder="e.g. Bulgaria, Kazanlak"
+            value={birthInfo.birthPlace}
+            onChange={onChange}
           />
-          <input type="submit" value="Generate names" />
+
+          <label htmlFor="birthDate">Enter birth date</label>
+          <input
+            type="text"
+            name="birthDate"
+            placeholder="e.g. 30 September 1996"
+            value={birthInfo.birthDate}
+            onChange={onChange}
+          />
+
+          <label htmlFor="birthTime">Enter birth time</label>
+          <input
+            type="text"
+            name="birthTime"
+            placeholder="e.g. 15:20"
+            value={birthInfo.birthTime}
+            onChange={onChange}
+          />
+
+          <input type="submit" value="Generate birth chart" />
         </form>
-        <div className={styles.result}>{result}</div>
+
+        <pre className={styles.result}>{JSON.stringify(result, null, 2) }</pre>
       </main>
     </div>
   );
